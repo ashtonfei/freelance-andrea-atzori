@@ -124,7 +124,6 @@ class App {
             contentBorders.push(contentBorder)
         }
         const styles = { width, blankRowHeight, minColumnWidth, maxColumnWidth }
-        console.log(styles)
         const htmlBody = this.createHtmlBody(contentValues, contentFormulas, contentBorders, styles)
         const data = {
             recipient,

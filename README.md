@@ -1,6 +1,7 @@
 # Email Automation Project
 
 [Upwork](https://www.upwork.com/ab/proposals/1341293919274479617)
+[Make a copy](https://docs.google.com/spreadsheets/d/1EXd-4n-ILJaepWSWDuErbKHsPNzg48gKXX8pw04X3JM/copy)
 
 ### Google Sheets script Developer needed to email content of the sheet when a cell is updated
 
