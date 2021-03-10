@@ -2,7 +2,7 @@
 
 [Upwork](https://www.upwork.com/ab/proposals/1341293919274479617)
 
-## Google Sheets script Developer needed to email content of the sheet when a cell is updated
+### Google Sheets script Developer needed to email content of the sheet when a cell is updated
 
 ### Job Details
 
