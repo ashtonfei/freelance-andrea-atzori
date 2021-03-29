@@ -12,6 +12,7 @@ const RN_COLUMNS = "columns" // range name of column percentages
 const RN_BG_COLOR = "bgColor" // range name of background color
 const RN_TEXT_COLOR = "textColor" // range name of text color
 const RN_BORDER_COLOR = "borderColor" // range name of border color
+const RN_SHEET_URL_OF_CHARTS = "sheetUrlOfCharts" // range name of sheet url for charts
 
 
 const RN_CONTENT = "body" // range name of email content
@@ -30,18 +31,24 @@ function onOpen() {
   menu.addToUi()
 }
 
-function test() {
-  // new App().getEmailData()
-  const cell = SpreadsheetApp.getActive().getActiveCell()
-  console.log(cell.getValue())
-  const border = cell.getBorder()
-  console.log(border.getBottom().getColor())
-}
-
 class App {
   constructor() {
     this.ss = SpreadsheetApp.getActive()
     this.ws = this.ss.getSheetByName(SN_EMAIL) || this.ss.getActiveSheet()
+  }
+
+  getCharts(){
+    const charts = {}
+    const [url, gid] = this.ss.getRange(RN_SHEET_URL_OF_CHARTS).getValue().split("#gid=")
+    if (!(url && gid)) return blobs
+    const ss = SpreadsheetApp.openByUrl(url)
+    if (!ss) return blobs
+    const ws = ss.getSheets().find(v => v.getSheetId() == gid)
+    if (!ws) return blobs
+    ws.getCharts().forEach((chart, i) => {
+      charts[`{{chart${i + 1}}}`] = chart.getBlob()
+    })
+    return charts
   }
 
   sendEmail() {
@@ -60,7 +67,7 @@ class App {
     }
   }
 
-  createHtmlBody(values, formulas, borders, { width, maxColumnWidth, minColumnWidth, blankRowHeight, columns, bgColor, textColor, borderColor }) {
+  createHtmlBody(values, formulas, borders, charts, { width, maxColumnWidth, minColumnWidth, blankRowHeight, columns, bgColor, textColor, borderColor }) {
     let html = `<div style="padding: 12px; background: ${bgColor}; color: ${textColor};"><table style="border-collapse: collapse; width: ${width}px; margin: auto;">`
     values.forEach((row, r) => {
       let tr = `<tr>`
@@ -71,7 +78,12 @@ class App {
         style = `height: ${blankRowHeight}px;`
         tr += `<td style="${style}" colspan="${row.length}"></td>`
       } else if (singleValueRow.length === 1) {
-        tr += `<td style="${style}" colspan="${row.length}">${singleValueRow[0]}</td>`
+        const value = singleValueRow[0]
+        if (charts[value]){
+          tr += `<td style="${style}" colspan="${row.length}"><img src="cid:${value}" alt="chart"/></td>`
+        }else{
+          tr += `<td style="${style}" colspan="${row.length}">${value}</td>`
+        }
       } else {
         row.forEach((cell, c) => {
           const border = borders[r][c]
@@ -141,7 +153,8 @@ class App {
     }
 
     const styles = { width, blankRowHeight, minColumnWidth, maxColumnWidth, columns, bgColor, textColor, borderColor }
-    const htmlBody = this.createHtmlBody(contentValues, contentFormulas, contentBorders, styles)
+    const charts = this.getCharts()
+    const htmlBody = this.createHtmlBody(contentValues, contentFormulas, contentBorders, charts, styles)
     const data = {
       recipient,
       subject,
@@ -149,6 +162,7 @@ class App {
         htmlBody,
         cc,
         bcc,
+        inlineImages: charts,
       }
     }
     return data
